@@ -1,0 +1,59 @@
+# ProcureIQ Configuration
+llm:
+  provider: "anthropic"
+  model: "claude-sonnet-4-6"
+  api_key: ""
+  max_tokens: 1500
+
+news:
+  api_key: ""
+  refresh_interval_minutes: 60
+  max_articles: 20
+  keywords:
+    - "supply chain disruption"
+    - "port congestion"
+    - "commodity price spike"
+    - "supplier bankruptcy"
+    - "shipping delay"
+
+suppliers:
+  risk_score_floor: 60
+  critical_ratings: ["B-", "C"]
+
+inventory:
+  critical_stock_pct: 15
+  low_stock_pct: 35
+  overstock_pct: 90
+  stockout_warning_days: 14
+
+alerts:
+  price_spike_pct: 10.0
+  demand_deviation_pct: 20.0
+
+simulator:
+  enabled: true
+  initial_budget_usd: 1200000
+  num_suppliers: 142
+  num_skus: 847
+  warehouse_names:
+    - "Mumbai"
+    - "Delhi NCR"
+    - "Bengaluru"
+    - "Chennai"
+    - "Pune"
+    - "Hyderabad"
+
+erp:
+  enabled: false
+  provider: "sap"
+  api_url: ""
+  api_key: ""
+
+dashboard:
+  host: "0.0.0.0"
+  port: 5000
+  debug: false
+
+logging:
+  level: "INFO"
+  file: "logs/procureiq.log"

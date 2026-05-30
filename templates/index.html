@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ProcureIQ — Supply Chain Intelligence</title>
+<link rel="stylesheet" href="/static/css/dashboard.css"/>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="tb-left">
+      <button class="ham" onclick="toggleSidebar()">&#9776;</button>
+      <div class="logo">PROCURE<span class="la">IQ</span></div>
+      <span class="ls">SUPPLY CHAIN AI</span>
+    </div>
+    <div class="tb-center">
+      <div class="searchbar">
+        <span class="si">&#9906;</span>
+        <input id="gq" type="text" placeholder='Ask: "Which suppliers are at risk this week?"' onkeydown="if(event.key==='Enter')runAnalysis()"/>
+      </div>
+    </div>
+    <div class="tb-right">
+      <span class="badge br" id="critical-badge" style="cursor:pointer" onclick="goto('signals')">3 CRITICAL</span>
+      <span class="badge bg" id="engine-badge">ENGINE OFF</span>
+      <span class="badge bb">Q2 W21</span>
+    </div>
+  </header>
+
+  <div class="shell">
+    <nav class="sidebar" id="sidebar">
+      <div class="sbs">WORKSPACE</div>
+      <div class="nav active" id="nav-command"   onclick="goto('command')"  ><span class="ni">&#9672;</span><span class="nl">Command Center</span></div>
+      <div class="nav"       id="nav-signals"   onclick="goto('signals')"  ><span class="ni">&#9888;</span><span class="nl">Risk Signals</span>   <span class="nc" id="nc-sig">0</span></div>
+      <div class="nav"       id="nav-positions" onclick="goto('positions')"><span class="ni">&#9647;</span><span class="nl">Inventory</span>       <span class="nc" id="nc-inv">0</span></div>
+      <div class="nav"       id="nav-demand"    onclick="goto('demand')"   ><span class="ni">&#8641;</span><span class="nl">Demand Forecast</span></div>
+      <div class="sbs">AGENTS</div>
+      <div class="nav"       id="nav-engine"    onclick="goto('engine')"   ><span class="ni">&#9881;</span><span class="nl">Engine Logs</span>    <span class="nc g" id="nc-eng">LIVE</span></div>
+      <div class="nav"       id="nav-suppliers" onclick="goto('suppliers')"><span class="ni">&#8862;</span><span class="nl">Suppliers</span></div>
+      <div class="sbs">REPORTS</div>
+      <div class="nav"       id="nav-trades"    onclick="goto('trades')"   ><span class="ni">&#8801;</span><span class="nl">History</span></div>
+      <div class="nav"       id="nav-costs"     onclick="goto('costs')"    ><span class="ni">&#9678;</span><span class="nl">Cost Optimizer</span></div>
+      <div class="nav"       id="nav-news"      onclick="goto('news')"     ><span class="ni">&#128240;</span><span class="nl">News Feed</span></div>
+      <div class="nav"       id="nav-perf"      onclick="goto('perf')"     ><span class="ni">&#128202;</span><span class="nl">Performance</span></div>
+      <div class="sbf"><div class="sbst"><span class="dot"></span><span id="sbst">5 agents ready</span></div></div>
+    </nav>
+
+    <main class="main" id="main">
+
+      <!-- COMMAND CENTER -->
+      <div class="page active" id="page-command">
+        <div class="phdr"><div><div class="pt">COMMAND <em>CENTER</em></div><div class="ps">Live supply chain overview</div></div>
+          <div class="pa"><button class="bp" onclick="runAnalysis()">&#9654; Run Analysis</button><button class="bs" onclick="exportData()">&#8595; Export</button></div></div>
+        <div class="content">
+          <div class="metrics">
+            <div class="metric" onclick="goto('suppliers')"><div class="ml">SUPPLIERS TRACKED</div><div class="mv" id="m-sup">142</div><div class="md">click to view all</div></div>
+            <div class="metric" onclick="goto('signals')"  ><div class="ml">CRITICAL ALERTS</div>  <div class="mv up" id="m-crit">3</div><div class="md up">action today</div></div>
+            <div class="metric" onclick="goto('costs')"    ><div class="ml">SAVINGS FOUND</div>    <div class="mv gr" id="m-sav">$84K</div><div class="md">AI-identified</div></div>
+            <div class="metric" onclick="goto('positions')"><div class="ml">STOCKOUT RISK 14d</div><div class="mv am" id="m-sto">9</div><div class="md">critical SKUs</div></div>
+          </div>
+          <div class="rag-card" id="rag-card" style="display:none">
+            <div class="rh"><div class="ri">&#10022;</div><div style="flex:1"><div class="ct">AI ACTION PLAN</div><div class="rts" id="rag-ts"></div></div><span class="badge bg">LIVE</span></div>
+            <div class="rb" id="rag-body"></div>
+          </div>
+          <div class="g2">
+            <div class="card"><div class="ch"><div class="ct">ACTIVE RISK SIGNALS</div><span class="cl" onclick="goto('signals')">all signals &#8594;</span></div><div id="cmd-sigs"></div></div>
+            <div class="card"><div class="ch"><div class="ct">AGENT STATUS</div><span class="cl" onclick="goto('engine')">view logs &#8594;</span></div><div id="cmd-agents"></div></div>
+          </div>
+          <div class="g2">
+            <div class="card"><div class="ch"><div class="ct">INVENTORY SNAPSHOT</div><span class="cl" onclick="goto('positions')">full view &#8594;</span></div>
+              <div class="bch" id="cmd-inv-chart"></div>
+              <div class="bcl"><span>SKU-009</span><span>SKU-015</span><span>SKU-021</span><span>SKU-030</span><span>SKU-045</span></div>
+              <div class="leg"><span class="li"><span class="ld gr"></span>OK</span><span class="li"><span class="ld am"></span>Low</span><span class="li"><span class="ld rd"></span>Critical</span></div></div>
+            <div class="card"><div class="ch"><div class="ct">SUPPLIER SCORECARD</div><span class="cl" onclick="goto('suppliers')">full &#8594;</span></div>
+              <table class="tbl"><thead><tr><th>SUPPLIER</th><th>SCORE</th><th>BAR</th><th></th></tr></thead><tbody id="cmd-sup"></tbody></table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RISK SIGNALS -->
+      <div class="page" id="page-signals">
+        <div class="phdr"><div><div class="pt">RISK <em>SIGNALS</em></div><div class="ps">Real-time disruption tracking</div></div>
+          <div class="pa"><span class="badge br" id="sig-badge">3 CRITICAL</span><button class="bs" onclick="runAnalysis()">Refresh</button></div></div>
+        <div class="content">
+          <div class="metrics">
+            <div class="metric"><div class="ml">CRITICAL</div><div class="mv up" id="sig-crit">3</div><div class="md">action today</div></div>
+            <div class="metric"><div class="ml">WARNINGS</div><div class="mv am">7</div><div class="md">monitor</div></div>
+            <div class="metric"><div class="ml">RISK SCORE</div><div class="mv am">68</div><div class="md up">&#8593; 9 pts</div></div>
+            <div class="metric"><div class="ml">SOURCES</div><div class="mv">14</div><div class="md">data feeds</div></div>
+          </div>
+          <div class="card mb"><div class="ch"><div class="ct">ALL RISK SIGNALS</div></div><div id="all-sigs"></div></div>
+          <div class="card"><div class="ch"><div class="ct">SUPPLIER SCORECARD — FULL</div></div>
+            <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>SUPPLIER</th><th>CAT</th><th>SCORE</th><th>ON-TIME</th><th>QUALITY</th><th>FIN</th><th>TREND</th><th>ACTION</th></tr></thead><tbody id="full-sup"></tbody></table></div></div>
+        </div>
+      </div>
+
+      <!-- INVENTORY -->
+      <div class="page" id="page-positions">
+        <div class="phdr"><div><div class="pt">INVENTORY <em>HEALTH</em></div><div class="ps">847 SKUs · 6 warehouses</div></div>
+          <div class="pa"><span class="badge br" id="inv-badge">9 CRITICAL</span><button class="bs" onclick="exportData()">Export</button></div></div>
+        <div class="content">
+          <div class="metrics">
+            <div class="metric"><div class="ml">TOTAL SKUS</div><div class="mv" id="inv-tot">847</div></div>
+            <div class="metric"><div class="ml">CRITICAL &lt;15%</div><div class="mv up" id="inv-c">9</div></div>
+            <div class="metric"><div class="ml">LOW 15-35%</div><div class="mv am" id="inv-l">23</div></div>
+            <div class="metric"><div class="ml">OVERSTOCK &gt;90%</div><div class="mv bl" id="inv-o">14</div></div>
+          </div>
+          <div class="card"><div class="ch"><div class="ct">SKU TABLE</div>
+            <div class="tabs"><div class="tab active" onclick="switchTab(this)">All</div><div class="tab" onclick="switchTab(this)">Critical</div><div class="tab" onclick="switchTab(this)">Reorder</div></div></div>
+            <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>SKU</th><th>PRODUCT</th><th>STOCK%</th><th>BAR</th><th>DAYS LEFT</th><th>STATUS</th></tr></thead><tbody id="inv-tbl"></tbody></table></div></div>
+        </div>
+      </div>
+
+      <!-- DEMAND FORECAST -->
+      <div class="page" id="page-demand">
+        <div class="phdr"><div><div class="pt">DEMAND <em>FORECAST</em></div><div class="ps">AI model v3.1 · 12-week view</div></div>
+          <div class="pa"><span class="badge bb">AI MODEL v3.1</span><span class="badge bg">91% ACCURACY</span></div></div>
+        <div class="content">
+          <div class="metrics">
+            <div class="metric"><div class="ml">ACCURACY</div><div class="mv gr">91%</div><div class="md gr">&#8593; 3%</div></div>
+            <div class="metric"><div class="ml">Q3 CHANGE</div><div class="mv up">+22%</div><div class="md">vs Q2</div></div>
+            <div class="metric"><div class="ml">PEAK WEEK</div><div class="mv pu">W31</div><div class="md">Aug 3</div></div>
+            <div class="metric"><div class="ml">ADVANCE POs</div><div class="mv am">17</div><div class="md">needed</div></div>
+          </div>
+          <div class="card mb"><div class="ch"><div class="ct">12-WEEK DEMAND CHART</div></div>
+            <div class="fcc"><div class="fch" id="fc-chart"></div><div class="fcl" id="fc-labels"></div></div>
+            <div class="leg"><span class="li"><span class="ld gr"></span>Actual</span><span class="li"><span class="ld bl" style="opacity:.5"></span>AI Forecast</span></div></div>
+          <div class="g2">
+            <div class="card"><div class="ch"><div class="ct">DEMAND DRIVERS</div></div><div id="demand-drv"></div></div>
+            <div class="card"><div class="ch"><div class="ct">TOP SKUs VELOCITY</div></div>
+              <table class="tbl"><thead><tr><th>SKU</th><th>PRODUCT</th><th>Q3 FCST</th><th>CHANGE</th></tr></thead><tbody id="fcst-tbl"></tbody></table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ENGINE LOGS -->
+      <div class="page" id="page-engine">
+        <div class="phdr"><div><div class="pt">ENGINE <em>LOGS</em></div><div class="ps">Live agent activity</div></div>
+          <div class="pa"><button class="bp" id="eng-btn" onclick="toggleEngine()">&#9654; Start Engine</button><button class="bs" onclick="runAnalysis()">Manual Run</button></div></div>
+        <div class="content">
+          <div class="metrics">
+            <div class="metric"><div class="ml">RUNS TODAY</div><div class="mv gr" id="eng-runs">0</div></div>
+            <div class="metric"><div class="ml">AGENTS</div><div class="mv">5</div></div>
+            <div class="metric"><div class="ml">STATUS</div><div class="mv" id="eng-status">IDLE</div></div>
+            <div class="metric"><div class="ml">LAST RUN</div><div class="mv" style="font-size:13px" id="eng-last">—</div></div>
+          </div>
+          <div class="card mb"><div class="ch"><div class="ct">LIVE LOG STREAM</div>
+            <div style="display:flex;gap:8px;align-items:center"><span class="dot"></span><span class="cl" onclick="addMockLog()">simulate</span></div></div>
+            <div class="logw" id="log-wrap"></div></div>
+          <div class="g2">
+            <div class="card"><div class="ch"><div class="ct">AGENT HEALTH</div></div><div id="agent-health"></div></div>
+            <div class="card"><div class="ch"><div class="ct">RUNS PER AGENT TODAY</div></div><div id="agent-bars"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUPPLIERS -->
+      <div class="page" id="page-suppliers">
+        <div class="phdr"><div><div class="pt">SUPPLIER <em>INTELLIGENCE</em></div><div class="ps">142 vendors · weekly KPI scoring</div></div>
+          <div class="pa"><button class="bs" onclick="exportData()">Export</button></div></div>
+        <div class="content">
+          <div class="card"><div class="ch"><div class="ct">ALL SUPPLIERS</div>
+            <input id="sup-search" type="text" placeholder="Search…" oninput="filterSup()" style="background:var(--s2);border:1px solid var(--b2);color:var(--tx);padding:5px 10px;border-radius:4px;font-size:11px;outline:none"/></div>
+            <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>ID</th><th>NAME</th><th>CATEGORY</th><th>SCORE</th><th>ON-TIME</th><th>QUALITY</th><th>FIN</th><th>COUNTRY</th></tr></thead><tbody id="sup-all"></tbody></table></div></div>
+        </div>
+      </div>
+
+      <!-- HISTORY -->
+      <div class="page" id="page-trades">
+        <div class="phdr"><div><div class="pt">ANALYSIS <em>HISTORY</em></div><div class="ps">All past engine runs</div></div></div>
+        <div class="content">
+          <div class="card"><div class="ch"><div class="ct">RECENT RUNS</div></div>
+            <table class="tbl"><thead><tr><th>TIME</th><th>QUERY</th><th>RISKS</th><th>ALERTS</th><th>SAVINGS</th><th>CRITICAL</th><th>SECS</th></tr></thead><tbody id="trades-tbl"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- COST OPTIMIZER -->
+      <div class="page" id="page-costs">
+        <div class="phdr"><div><div class="pt">COST <em>OPTIMIZER</em></div><div class="ps">AI-found procurement savings</div></div>
+          <div class="pa"><span class="badge bg" id="cost-badge">$0 SAVINGS</span></div></div>
+        <div class="content">
+          <div class="metrics">
+            <div class="metric"><div class="ml">TOTAL SAVINGS</div><div class="mv gr" id="cost-total">$0</div></div>
+            <div class="metric"><div class="ml">OPPORTUNITIES</div><div class="mv gr" id="cost-count">0</div></div>
+            <div class="metric"><div class="ml">MONTHLY BUDGET</div><div class="mv">$1.2M</div></div>
+            <div class="metric"><div class="ml">SAVINGS RATE</div><div class="mv gr">7%</div></div>
+          </div>
+          <div class="card"><div class="ch"><div class="ct">OPPORTUNITIES</div><span class="badge bg">AI FOUND</span></div><div id="cost-list"></div></div>
+        </div>
+      </div>
+
+      <!-- NEWS FEED -->
+      <div class="page" id="page-news">
+        <div class="phdr"><div><div class="pt">NEWS <em>FEED</em></div><div class="ps">Supply chain headlines with AI sentiment</div></div>
+          <div class="pa"><button class="bs" onclick="loadPage('news')">Refresh</button></div></div>
+        <div class="content"><div class="card"><div class="ch"><div class="ct">RECENT ARTICLES</div></div><div id="news-list"></div></div></div>
+      </div>
+
+      <!-- PERFORMANCE -->
+      <div class="page" id="page-perf">
+        <div class="phdr"><div><div class="pt">SYSTEM <em>PERFORMANCE</em></div><div class="ps">Engine analytics</div></div></div>
+        <div class="content">
+          <div class="metrics">
+            <div class="metric"><div class="ml">TOTAL RUNS</div><div class="mv gr" id="perf-runs">0</div></div>
+            <div class="metric"><div class="ml">AVG RESPONSE</div><div class="mv gr" id="perf-time">—</div></div>
+            <div class="metric"><div class="ml">TOTAL SAVINGS</div><div class="mv gr" id="perf-sav">$0</div></div>
+            <div class="metric"><div class="ml">AVG CRITICAL</div><div class="mv am" id="perf-crit">—</div></div>
+          </div>
+          <div class="card"><div class="ch"><div class="ct">RUN HISTORY</div></div>
+            <table class="tbl"><thead><tr><th>TIME</th><th>SAVINGS</th><th>CRITICAL</th><th>PROC(s)</th></tr></thead><tbody id="perf-tbl"></tbody></table></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<div id="overlay" class="overlay">
+  <div class="ov-t">AGENTS THINKING&#8230;</div>
+  <div class="ov-s">5 AGENTS RUNNING IN PARALLEL</div>
+  <div id="ov-agents" class="ov-agents"></div>
+  <div class="pw"><div class="pf" id="pf"></div></div>
+</div>
+
+<div id="toast"><div id="tt"></div><div id="tm"></div></div>
+<script src="/static/js/dashboard.js"></script>
+</body>
+</html>
